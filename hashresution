@@ -1,0 +1,98 @@
+#include <stdio.h>
+#define MAX_N 53
+#define MAX_CHAIN 53   /* max keys per chain */
+int m;                          /* table size = number of elements */
+int table[MAX_N];               /* open addressing storage */
+int chain[MAX_N][MAX_CHAIN];    /* separate chaining storage */
+int chain_len[MAX_N];
+/* Division method: home slot */
+int h1(int k) {
+    return k % m;
+}
+/* Step size for double hashing: never 0 */
+int h2(int k) {
+    if (m <= 1) return 1;
+    return 1 + (((k % (m - 1)) + (m - 1)) % (m - 1));
+}
+void init_table(void) {
+    for (int i = 0; i < m; i++) {
+        table[i] = -1;
+        chain_len[i] = 0;
+    }
+}
+/* Insert k using technique t: 0=chaining, 1=linear, 2=quadratic, 3=double */
+int insert(int k, int t) {
+    int idx = h1(k);
+
+    if (t == 0) {
+        chain[idx][chain_len[idx]++] = k;
+        return 1;
+    }
+
+    for (int i = 0; i < m; i++) {
+        int s;
+
+        if (t == 1)
+            s = (idx + i) % m;
+        else if (t == 2)
+            s = (idx + i * i) % m;
+        else
+            s = (idx + i * h2(k)) % m;
+
+        if (table[s] == -1) {
+            table[s] = k;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+void show(int t) {
+    for (int i = 0; i < m; i++) {
+        printf("Slot %d: ", i);
+
+        if (t == 0) {
+            for (int j = 0; j < chain_len[i]; j++)
+                printf("%d -> ", chain[i][j]);
+            printf("NULL\n");
+        }
+        else {
+            if (table[i] == -1)
+                printf("-\n");
+            else
+                printf("%d\n", table[i]);
+        }
+    }
+}
+int main() {
+    int n, arr[MAX_N];
+
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    if (n <= 0 || n > MAX_N) {
+        printf("Invalid size");
+        return 1;
+    }
+
+    printf("Enter elements: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &arr[i]);
+
+    m = n;
+
+    for (int t = 0; t < 4; t++) {
+        init_table();
+
+        for (int i = 0; i < n; i++)
+            insert(arr[i], t);
+
+        printf("\n%s\n", 
+            (char *[]){"Chaining", "Linear Probing",
+                       "Quadratic Probing", "Double Hashing"}[t]);
+
+        show(t);
+    }
+
+    return 0;
+}
