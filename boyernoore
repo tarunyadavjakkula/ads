@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+#define MAX 100
+// -------------------- BOYER-MOORE using Bad Character Heuristic --------------------
+void badCharHeuristic(char pattern[], int size, int badChar[]) {
+    for (int i = 0; i < 256; i++)
+        badChar[i] = -1;
+    for (int i = 0; i < size; i++)
+        badChar[(int)pattern[i]] = i;
+}
+// Boyer-Moore Search
+void boyerMooreSearch(char text[], char pattern[]) {
+    int m = strlen(pattern);
+    int n = strlen(text);
+    int badChar[256];
+    badCharHeuristic(pattern, m, badChar);
+    int shift = 0;
+    while (shift <= (n - m)) 
+    {
+        int j = m - 1;
+        while (j >= 0 && pattern[j] == text[shift + j])
+            j--;
+        if (j < 0) 
+        {
+            printf("Boyer-Moore: Pattern found at index %d\n", shift);
+            shift += (shift + m < n) ? m - badChar[text[shift + m]] : 1;
+        } 
+        else 
+        {
+            int move = j - badChar[text[shift + j]];
+            shift += (move > 1) ? move : 1;
+        }
+    }
+}
+int main() {
+    char text[MAX], pattern[MAX];
+    printf("Enter text: ");
+    scanf("%s", text);
+    printf("Enter pattern: ");
+    scanf("%s", pattern);
+    boyerMooreSearch(text, pattern);
+    return 0;
+}
