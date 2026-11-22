@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#define ALPHABET_SIZE 26
+// ──── Standard Trie Node ────
+typedef struct TrieNode {
+    struct TrieNode *children[ALPHABET_SIZE];
+    bool isEndOfWord;
+} TrieNode;
+TrieNode* createNode() {
+    TrieNode *n = (TrieNode *)calloc(1, sizeof(TrieNode));
+    n->isEndOfWord = false;
+    return n;
+}
+void insert(TrieNode *root, const char *word) {
+    TrieNode *curr = root;
+    for (int i = 0; word[i]; i++) {
+        int idx = word[i] - 'a';
+        if (!curr->children[idx])
+            curr->children[idx] = createNode();
+        curr = curr->children[idx];
+    }
+    curr->isEndOfWord = true;
+}
+void search(TrieNode *root, const char *word) {
+    TrieNode *curr = root;
+    int i;
+    //bool flag=1;
+    for (i = 0; word[i]; i++) {
+        int idx = word[i] - 'a';
+        if (!curr->children[idx])
+            break;
+        curr = curr->children[idx];
+    }
+    if(word[i])
+        printf("\n %s Not Found\n",word);
+    else if(curr->isEndOfWord)
+        printf("\n %s Found\n",word);
+}
+bool startsWith(TrieNode *root, const char *prefix) {
+    TrieNode *curr = root;
+    for (int i = 0; prefix[i]; i++) {
+        int idx = prefix[i] - 'a';
+        if (!curr->children[idx])
+            return false;
+        curr = curr->children[idx];
+    }
+    return true;
+}
+void printAll(TrieNode *node, char *buffer, int depth) {
+    if (node->isEndOfWord) {
+        buffer[depth] = '\0';
+        printf("  %s\n", buffer);
+    }
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        if (node->children[i]) {
+            buffer[depth] = 'a' + i;
+            printAll(node->children[i], buffer, depth + 1);
+        }
+    }
+}
+void autocomplete(TrieNode *root, const char *prefix) {
+    TrieNode *curr = root;
+    for (int i = 0; prefix[i]; i++) {
+        int idx = prefix[i] - 'a';
+        if (!curr->children[idx]) {
+            printf("  No suggestions.\n");
+            return;
+        }
+        curr = curr->children[idx];
+    }
+    char buffer[256];
+    strcpy(buffer, prefix);
+    int len = strlen(prefix);
+    printAll(curr, buffer, len);
+}
+int main() {
+    TrieNode *root = createNode();
+    const char *words[] = {"apple","app","ape","bat","bar",
+                           "ball","batman","band"};
+    int n = sizeof(words) / sizeof(words[0]);
+    for (int i = 0; i < n; i++) {
+        insert(root, words[i]);
+        printf("Inserted: %s\n", words[i]);
+    }
+    printf("\nAll words in trie:\n");
+    char buf[256];
+    printAll(root, buf, 0);
+    search(root, "app") ;
+    search(root, "apex");
+    printf("\n Prefix \"ba\": %s\n",
+           startsWith(root, "ba") ? "EXISTS" : "NOT FOUND");
+    printf("\nAutocomplete \"ba\":\n");
+    autocomplete(root, "ba");
+    search(root, "ball") ;
+    return 0;
+}
