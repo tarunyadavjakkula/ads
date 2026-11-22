@@ -1,0 +1,44 @@
+#include<stdio.h>
+#include<math.h>
+// -------------------- DIVISION METHOD --------------------
+int hashDivision(int key, int tableSize) {
+   return key % tableSize;
+}
+// -------------------- MULTIPLICATION METHOD --------------------
+int hashMultiplication(int key, int tableSize) {
+   double A = 0.6180339887; // constant (fractional part of golden ratio)
+   double frac =  fmod((key * A),1); // fmod is for % operation on double
+   return (int)(tableSize * frac);
+}
+// -------------------- MID-SQUARE METHOD --------------------
+int hashMidSquare(int key, int tableSize) {
+   int squared = key * key;
+   int digits = (int)log10(squared) + 1;
+   int mid = digits / 2;
+   // Extract middle digit (or two digits if needed)
+   int extract = (squared / (int)pow(10, mid - 1)) % 100;
+   return extract % tableSize;
+}
+// -------------------- FOLDING METHOD --------------------
+int hashFolding(int key, int tableSize) {
+   int sum = 0;
+   while (key > 0) {
+       sum += key % 100;  // sum of 2-digit blocks
+       key /= 100;
+   }
+   return sum % tableSize;
+}
+// -------------------- MAIN --------------------
+int main() {
+   int key, tableSize;
+   printf("Enter the key: ");
+   scanf("%d", &key);
+   printf("Enter hash table size: ");
+   scanf("%d", &tableSize);
+   printf("\nHash Functions Results:\n");
+   printf("Division Method: %d\n", hashDivision(key, tableSize));
+   printf("Multiplication Method: %d\n", hashMultiplication(key, tableSize));
+   printf("Mid-square Method: %d\n", hashMidSquare(key, tableSize));
+   printf("Folding Method: %d\n", hashFolding(key, tableSize));
+   return 0;
+}
