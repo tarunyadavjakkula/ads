@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+ 
+#define MAX 100
+ 
+int heap[MAX];
+int size = 0;
+ 
+// -------------------- SWAP --------------------
+void swap(int *a, int *b) {
+int temp = *a;
+*a = *b;
+*b = temp;
+}
+ 
+// -------------------- HEAPIFY UP (Insert) --------------------
+void heapifyUp(int index) {
+int parent = (index - 1) / 2;
+if (index && heap[parent] < heap[index]) {
+swap(&heap[parent], &heap[index]);
+heapifyUp(parent);
+}
+}
+ 
+// -------------------- HEAPIFY DOWN (Extract) --------------------
+void heapifyDown(int index) {
+int left = 2 * index + 1;
+int right = 2 * index + 2;
+int largest = index;
+ 
+if (left < size && heap[left] > heap[largest])
+largest = left;
+if (right < size && heap[right] > heap[largest])
+largest = right;
+ 
+if (largest != index) {
+swap(&heap[index], &heap[largest]);
+heapifyDown(largest);
+}
+}
+ 
+// -------------------- INSERT --------------------
+void insert(int value) {
+if (size >= MAX) {
+printf("Heap overflow\n");
+return;
+}
+heap[size] = value;
+size++;
+heapifyUp(size - 1);
+}
+ 
+// -------------------- EXTRACT MAX --------------------
+int extractMax() {
+if (size <= 0)
+return -1; // Heap empty
+int root = heap[0];
+heap[0] = heap[size - 1];
+size--;
+heapifyDown(0);
+return root;
+}
+ 
+// -------------------- DISPLAY --------------------
+void display() {
+for (int i = 0; i < size; i++)
+printf("%d ", heap[i]);
+printf("\n");
+}
+ 
+// -------------------- MAIN --------------------
+int main() {
+int n, choice, val;
+ 
+printf("Enter number of elements to insert: ");
+scanf("%d", &n);
+ 
+printf("Enter elements:\n");
+for (int i = 0; i < n; i++) {
+scanf("%d", &val);
+insert(val);
+}
+ 
+printf("Max-Heap elements:\n");
+display();
+ 
+printf("Extracting max element: %d\n", extractMax());
+printf("Heap after extraction:\n");
+display();
+ 
+return 0;
+}
