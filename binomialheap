@@ -1,0 +1,163 @@
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct Node {
+   int key;
+   int degree;
+   struct Node* parent;
+   struct Node* child;
+   struct Node* sibling;
+} Node;
+// -------------------- CREATE NODE --------------------
+Node* createNode(int key) {
+   Node* node = (Node*)malloc(sizeof(Node));
+   node->key = key;
+   node->degree = 0;
+   node->parent = node->child = node->sibling = NULL;
+   return node;
+}
+// -------------------- LINK TREES --------------------
+void linkTrees(Node* y, Node* z) {
+   y->parent = z;
+   y->sibling = z->child;
+   z->child = y;
+   z->degree++;
+}
+// -------------------- MERGE ROOT LISTS --------------------
+Node* mergeRootLists(Node* h1, Node* h2) {
+   Node* head = NULL;
+   Node** pos = &head;
+ 
+   while (h1 && h2) {
+       if (h1->degree <= h2->degree) {
+           *pos = h1;
+           h1 = h1->sibling;
+       } else {
+           *pos = h2;
+           h2 = h2->sibling;
+       }
+       pos = &(*pos)->sibling;
+   }
+ 
+   if (h1)
+       *pos = h1;
+   else
+       *pos = h2;
+ 
+   return head;
+}
+// -------------------- UNION HEAPS --------------------
+Node* unionHeaps(Node* h1, Node* h2) {
+   Node* newHead = mergeRootLists(h1, h2);
+   if (!newHead)
+       return NULL;
+   Node* prev = NULL;
+   Node* curr = newHead;
+   Node* next = curr->sibling;
+   while (next) {
+       if ((curr->degree != next->degree) ||
+           (next->sibling && next->sibling->degree == curr->degree)) {
+           prev = curr;
+           curr = next;
+       } else {
+           if (curr->key <= next->key) {
+               curr->sibling = next->sibling;
+               linkTrees(next, curr);
+           } else {
+               if (!prev)
+                   newHead = next;
+               else
+                   prev->sibling = next;
+ 
+               linkTrees(curr, next);
+               curr = next;
+           }
+       }
+       next = curr->sibling;
+   }
+   return newHead;
+}
+// -------------------- INSERT --------------------
+Node* insert(Node* heap, int key) {
+   Node* temp = createNode(key);
+   return unionHeaps(heap, temp);
+}
+// -------------------- FIND MIN --------------------
+Node* findMin(Node* heap) {
+   Node* y = NULL;
+   Node* x = heap;
+   int min = __INT_MAX__;
+ 
+   while (x) {
+       if (x->key < min) {
+           min = x->key;
+           y = x;
+       }
+       x = x->sibling;
+   }
+   return y;
+}
+// -------------------- EXTRACT MIN --------------------
+Node* extractMin(Node** heap) {
+   if (!*heap)
+       return NULL;
+   Node* prevMin = NULL;
+   Node* minNode = *heap;
+   Node* prev = NULL;
+   Node* curr = *heap;
+   int min = curr->key;
+   while (curr) {
+       if (curr->key < min) {
+           min = curr->key;
+           prevMin = prev;
+           minNode = curr;
+       }
+       prev = curr;
+       curr = curr->sibling;
+   }
+   // Remove minNode from root list
+   if (!prevMin)
+       *heap = minNode->sibling;
+   else
+       prevMin->sibling = minNode->sibling;
+   // Reverse minNode's child list
+   Node* child = minNode->child;
+   Node* temp = NULL;
+   while (child) {
+       Node* next = child->sibling;
+       child->sibling = temp;
+       child->parent = NULL;
+       temp = child;
+       child = next;
+   }
+   *heap = unionHeaps(*heap, temp);
+   return minNode;
+}
+// -------------------- DISPLAY ROOTS --------------------
+void display(Node* heap) {
+   printf("Binomial Heap Roots: ");
+   while (heap) {
+       printf("%d ", heap->key);
+       heap = heap->sibling;
+   }
+   printf("\n");
+}
+// -------------------- MAIN --------------------
+int main() {
+   Node* heap = NULL;
+   int n, key;
+   printf("Enter number of elements: ");
+   scanf("%d", &n);
+   printf("Enter elements:\n");
+   for (int i = 0; i < n; i++) {
+       scanf("%d", &key);
+       heap = insert(heap, key);
+   }
+   display(heap);
+   Node* minNode = extractMin(&heap);
+   if (minNode) {
+       printf("Extracted min: %d\n", minNode->key);
+       free(minNode);
+   }
+   display(heap);
+   return 0;
+}
